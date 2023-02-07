@@ -1,8 +1,9 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
+    import type { CreateSoundModalData } from "../model";
 
     const dispatch = createEventDispatcher();
-    export let soundModal = null;
+    export let soundModal: CreateSoundModalData = null;
 
     function close() {
         soundModal = null;
@@ -24,7 +25,7 @@
         }
     }
 
-    function readFileToBase64(file) {
+    function readFileToBase64(file: File) {
         return new Promise((resolve) => {
             let reader = new FileReader();
 
@@ -38,6 +39,7 @@
 </script>
 
 {#if soundModal != null}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="modal-bg" on:click|stopPropagation={close}>
         <div on:click|stopPropagation class="modal-content">
             <h1>Add sound</h1>

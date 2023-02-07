@@ -1,24 +1,25 @@
 <script lang="ts">
     import Item from "./Item.svelte";
     import { createEventDispatcher } from "svelte";
+    import type { Sound } from "../model";
     const dispatch = createEventDispatcher();
 
-    export let items;
+    export let sounds: Sound[];
 
-    function add(e) {
+    function add(e: { detail: Sound }) {
         dispatch("add", e.detail);
     }
 
-    function addSound() {
-        dispatch("addSound");
+    function createSound() {
+        dispatch("createSound");
     }
 </script>
 
 <div class="sequence">
-    {#each items as item}
-        <Item on:add={add} data={item} />
+    {#each sounds as item}
+        <Item on:add={add} item={item} />
     {/each}
-    <div class="sound placeholder" on:click={addSound} on:keydown={addSound}>
+    <div class="sound placeholder" on:click={createSound} on:keydown={createSound}>
         ➕
     </div>
 </div>

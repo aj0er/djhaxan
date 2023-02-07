@@ -17,10 +17,11 @@
     }
 </script>
 
-{#if scriptModal != null}
+{#if scriptModal }
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div class="modal-bg" on:click|stopPropagation={close}>
         <div on:click|stopPropagation class="modal-content">
-            <h1>Add script</h1>
+            <h1>Add JavaScript</h1>
             <textarea bind:value={script} /><br />
 
             <button on:click={save}>Add</button>

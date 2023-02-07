@@ -1,35 +1,49 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { globalIcons, loadedSounds } from "../loadedSounds";
+    import {
+        type SongItem,
+        type Sound,
+        isAudioData,
+    } from "../model";
 
     const dispatch = createEventDispatcher();
-    function play() {
-        if (data.sound) {
-            new Audio(loadedSounds.sounds[data.sound].sound).play();
+
+    export let item: Sound | SongItem;
+
+    function onLeftClick() {
+        if (item.data && isAudioData(item.data)) {
+            new Audio(loadedSounds.sounds[item.data.sound].sound).play();
         }
 
-        dispatch("add", data);
+        dispatch("add", item);
     }
 
-    function mouseDown(e) {
-        if (e.buttons == 1) {
-            play();
-        } else if (e.buttons == 2) {
-            dispatch("remove", data);
+    function onMouseDown(e: MouseEvent) {
+        switch (e.buttons) {
+            case 1: { // Left click
+                onLeftClick();
+                break;
+            }
+
+            case 2: { // Right click
+                dispatch("remove", item);
+                break;
+            }
         }
     }
 
-    function getImage(data) {
-        if (data.sound) return loadedSounds.sounds[data.sound].image;
+    function getImage(data: Sound | SongItem) {
+        if (data.data != null && isAudioData(data.data)) {
+            return loadedSounds.sounds[data.data.sound].image;
+        }
 
         return globalIcons[data.type];
     }
-
-    export let data;
 </script>
 
-<div class="sound" on:mousedown={mouseDown}>
-    <img alt="Sound.." src={getImage(data)} />
+<div class="sound" on:mousedown={onMouseDown}>
+    <img alt="Sound" src={getImage(item)} />
 </div>
 
 <style>

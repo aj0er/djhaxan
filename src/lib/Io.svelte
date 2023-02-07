@@ -2,47 +2,38 @@
     import { loadedSounds } from "../loadedSounds";
     import { loadSoundsJSON } from "../util";
     import { createEventDispatcher } from "svelte";
+    import type { AudioData, SongItem, Sound } from "../model";
+
     const dispatch = createEventDispatcher();
 
-    let soundsFile;
-    let songFile;
+    let soundsFile: FileList;
+    let songFile: FileList;
 
-    export let items;
-    export let added;
+    let soundsFileName: string = "sounds.json";
+    let songFileName: string = "song.json";
 
-    function loadSounds() {
-        let reader = new FileReader();
-        reader.readAsText(soundsFile[0]);
-        reader.onload = function () {
-            if (typeof reader.result != "string") return;
+    export let sounds: Sound[];
+    export let song: SongItem[];
 
-            let data = JSON.parse(reader.result);
-            dispatch("sounds", loadSoundsJSON(data));
-        };
-    }
-
-    function loadSong() {
-        let reader = new FileReader();
-        reader.readAsText(songFile[0]);
-        reader.onload = function () {
-            if (typeof reader.result != "string") return;
-
-            dispatch("song", JSON.parse(reader.result));
-        };
+    function getSounds(){
+        return sounds.map((item) => loadedSounds.sounds[(item.data as AudioData).sound]);
     }
 
     function saveSounds() {
-        saveJSON(
-            "items.json",
-            items.map((item) => loadedSounds.sounds[item.sound])
+        saveJSONFile(
+            soundsFileName,
+            getSounds()
         );
     }
 
     function saveSong() {
-        saveJSON("song.json", added);
+        saveJSONFile(songFileName, {
+            sounds: getSounds(),
+            song: song
+        });
     }
 
-    function saveJSON(fileName, data) {
+    function saveJSONFile(fileName: string, data: any) {
         const element = document.createElement("a");
         element.setAttribute(
             "href",
@@ -58,12 +49,27 @@
         document.body.removeChild(element);
     }
 
-    function copy(){
-        let itemsStr = JSON.stringify(loadedSounds);
-        let addedStr = JSON.stringify(added);
+    function onSoundsUpload(){
+        let reader = new FileReader();
+        reader.readAsText(soundsFile[0]);
+        reader.onload = () => {
+            if (typeof reader.result != "string") return;
 
-        let str = itemsStr + "|:|" + addedStr;
-        window.location.href = "http://localhost:5173/l?=" + btoa(str);
+            let data = JSON.parse(reader.result);
+            dispatch("sounds", loadSoundsJSON(data));
+        };
+    }
+
+    function onSongUpload(){
+        let reader = new FileReader();
+        reader.readAsText(songFile[0]);
+        reader.onload = () => {
+            if (typeof reader.result != "string") return;
+
+            let data = JSON.parse(reader.result);
+            dispatch("sounds", loadSoundsJSON(data.sounds));
+            dispatch("song", data.song);
+        };
     }
 </script>
 
@@ -71,22 +77,20 @@
     <div>
         <div>
             Load sounds:
-            <input bind:files={soundsFile} type="file" name="g" />
-            <button on:click={loadSounds}>Load</button>
+            <input bind:files={soundsFile} on:change={onSoundsUpload} type="file" />
         </div>
-        <div>
+        <div class="mt">
             Load song:
-            <input bind:files={songFile} type="file" name="g" />
-            <button on:click={loadSong}>Load</button>
+            <input bind:files={songFile} on:change={onSongUpload} type="file" />
         </div>
     </div>
     <div>
         <div>
-            <input type="text" value="sounds.json" />
+            <input type="text" bind:value={soundsFileName} />
             <button on:click={saveSounds}>Save sounds</button>
         </div>
-        <div>
-            <input type="text" value="song.json" />
+        <div class="mt">
+            <input type="text" bind:value={songFileName} />
             <button on:click={saveSong}>Save song</button>
         </div>
     </div>
@@ -99,7 +103,7 @@
         align-items: center;
     }
 
-    .copy {
-        width: 100%;
+    .mt {
+        margin-top: 5px;
     }
 </style>

@@ -18,7 +18,7 @@
 
 <div class="options">
     <div class="custom-items">
-        <Item on:add={add} data={{ type: "SCRIPT" }} />
+        <Item on:add={add} item={{ type: "SCRIPT" }} />
     </div>
     <div class="settings">
         <div class="input-gap">

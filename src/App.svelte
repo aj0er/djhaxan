@@ -1,5 +1,5 @@
 <script lang="ts">
-    import AddSoundModal from "./lib/AddSoundModal.svelte";
+    import AddSoundModal from "./lib/CreateSoundModal.svelte";
     import { loadedSounds } from "./loadedSounds";
 
     import { v4 as uuidv4 } from "uuid";
@@ -10,28 +10,30 @@
     import Sounds from "./lib/Sounds.svelte";
     import Io from "./lib/Io.svelte";
     import { loadSoundsJSON } from "./util";
-    import { onMount } from "svelte";
+    import type { AudioData, CreateSoundModalData, ScriptData, SongItem, Sound } from "./model";
 
-    let items: any[] = [];
+    let sounds: Sound[] = [];
+    let song: SongItem[] = [];
 
-    let i: any = 0;
-    let speed: any = 0;
-    let playbackRate: any = 1.0;
+    let currentItemIdx: number = 0;
 
-    let currentAudio: any = null;
-    let added: any = [];
-    let soundModal: any = null;
-    let scriptModal = null;
+    let bpm: number = 0;
+    let playbackRate: number = 1.0;
 
-    function add(e) {
+    let currentPlayingAudio: HTMLAudioElement = null;
+
+    let createSoundModal: CreateSoundModalData = null;
+    let scriptModal = false;
+
+    function onItemAdded(e: { detail: { type: any; data: any; }; }) {
         switch (e.detail.type) {
             case "AUDIO": {
-                added = [
-                    ...added,
+                song = [
+                    ...song,
                     {
                         id: Date.now(),
                         type: e.detail.type,
-                        sound: e.detail.sound,
+                        data: e.detail.data 
                     },
                 ];
                 break;
@@ -44,91 +46,101 @@
     }
 
     function play() {
-        if (i >= added.length) {
-            i = 0;
+        if (currentItemIdx >= song.length) {
+            currentItemIdx = 0;
             return;
         }
 
-        let item = added[i];
-        i++;
+        let item = song[currentItemIdx];
+        currentItemIdx++;
 
         switch (item.type) {
-            case "AUDIO":
-                currentAudio = new Audio(loadedSounds.sounds[item.sound].sound);
-                currentAudio.playbackRate = playbackRate;
-                currentAudio.play();
+            case "AUDIO":{
+                let data = item.data as AudioData;
+
+                currentPlayingAudio = new Audio(loadedSounds.sounds[data.sound].sound);
+                currentPlayingAudio.playbackRate = playbackRate;
+                currentPlayingAudio.play();
                 break;
-            case "SCRIPT":
-                eval(item.script);
+            }
+            case "SCRIPT":{
+                let data = item.data as ScriptData;
+
+                eval(data.script);
                 break;
+            }
+            case "BPM":{
+                break;
+            }
+
         }
 
-        setTimeout(play, 1500 - speed);
+        setTimeout(play, 1500 - bpm);
     }
 
     function onSpeedChange(speed) {
-        if (speed == null || currentAudio == null) return;
+        if (speed == null || currentPlayingAudio == null) return;
 
-        currentAudio.playbackRate = speed;
+        currentPlayingAudio.playbackRate = speed;
     }
 
     async function onBoardSelect(e) {
         let data = await fetch(e.detail);
         let json = await data.json();
 
-        items = loadSoundsJSON(json);
+        sounds = loadSoundsJSON(json);
     }
 
     function onSoundAdded(e) {
         const id = uuidv4();
         loadedSounds.sounds[id] = {
             id,
-            type: "AUDIO",
             sound: e.detail.sound,
             image: e.detail.image,
         };
 
-        items = [
-            ...items,
+        sounds = [
+            ...sounds,
             {
-                sound: id,
                 type: "AUDIO",
+                data: {
+                    sound: id,
+                }
             },
         ];
     }
 
     function removeSound(e) {
-        added = added.filter((i) => i.id != e.detail.id);
+        song = song.filter((i) => i.id != e.detail.id);
     }
 
     function onScriptAdded(e) {
-        added = [
-            ...added,
+        song = [
+            ...song,
             {
                 id: Date.now(),
                 type: "SCRIPT",
-                script: e.detail,
+                data: {
+                    script: e.detail,
+                }
             },
         ];
     }
 
     function onSongLoaded(e) {
-        added = e.detail;
+        song = e.detail;
     }
 
     function onSoundsLoaded(e) {
-        items = e.detail;
+        sounds = e.detail;
     }
 
-    onMount(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const myParam = urlParams.get('l');
-
-        if(myParam == null)
-            return;
-
-        console.log(atob(myParam));
-    })
+    function createSound(){
+        createSoundModal = {
+            sound: null, 
+            image: null
+        };
+    }
 
     $: onSpeedChange(playbackRate);
 </script>
@@ -136,24 +148,24 @@
 <main>
     <h1>DJ Häxan</h1>
 
-    <Io on:song={onSongLoaded} on:sounds={onSoundsLoaded} {added} {items} />
+    <Io on:song={onSongLoaded} on:sounds={onSoundsLoaded} song={song} sounds={sounds} />
 
     <Boards on:select={onBoardSelect} />
 
-    <AddSoundModal bind:soundModal on:add={onSoundAdded} />
+    <AddSoundModal bind:soundModal={createSoundModal} on:add={onSoundAdded} />
     <AddScriptModal bind:scriptModal on:add={onScriptAdded} />
 
     <h2>Sounds</h2>
     <div class="sections">
         <div class="main-section">
             <Sounds
-                on:addSound={() => (soundModal = {})}
-                bind:items
-                on:add={add}
+                on:createSound={createSound}
+                bind:sounds={sounds}
+                on:add={onItemAdded}
             />
-            <Song bind:added on:remove={removeSound} />
+            <Song bind:song={song} on:remove={removeSound} />
         </div>
-        <Options on:add={add} on:play={play} bind:speed bind:playbackRate />
+        <Options on:add={onItemAdded} on:play={play} bind:speed={bpm} bind:playbackRate />
     </div>
 </main>
 

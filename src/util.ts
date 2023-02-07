@@ -10,7 +10,9 @@ export function loadSoundsJSON(data){
 
     return data.map(s => {
         return {
-            sound: s.id,
+            data: {
+                sound: s.id,
+            },
             type: s.type
         }
     });
