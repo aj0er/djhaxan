@@ -4,21 +4,28 @@
 
     const dispatch = createEventDispatcher();
 
-    export let speed;
-    export let playbackRate;
+    export let speed: number;
+    export let playbackRate: number;
 
+    /**
+     * Called when the play button is clicked
+     */
     function play(_) {
         dispatch("play");
     }
 
-    function add(e) {
+    /**
+     * Called when a custom item (e.g script) is supposed to be added to the song
+     * @param e 
+     */
+    function add(e: { detail: any; }) {
         dispatch("add", e.detail);
     }
 </script>
 
 <div class="options">
     <div class="custom-items">
-        <Item on:add={add} item={{ type: "SCRIPT" }} />
+        <Item on:add={add} white={true} item={{ type: "SCRIPT" }} />
     </div>
     <div class="settings">
         <div class="input-gap">

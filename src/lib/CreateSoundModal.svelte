@@ -9,6 +9,10 @@
         soundModal = null;
     }
 
+    /**
+     * Called when a sound should be created.
+     * Loads the files as Base64 and dispatches event to the parent.
+     */
     function save() {
         if (soundModal.sound != null && soundModal.image != null) {
             Promise.all([
@@ -25,15 +29,16 @@
         }
     }
 
-    function readFileToBase64(file: File) {
+    /**
+     * Reads a file to a Base64 string.
+     * @param file File to read.
+     */
+    function readFileToBase64(file: File): Promise<string> {
         return new Promise((resolve) => {
             let reader = new FileReader();
 
             reader.readAsDataURL(file);
-
-            reader.onload = function () {
-                resolve(reader.result);
-            };
+            reader.onload = () => resolve(reader.result as string);
         });
     }
 </script>

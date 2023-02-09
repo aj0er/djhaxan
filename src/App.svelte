@@ -25,6 +25,11 @@
     let createSoundModal: CreateSoundModalData = null;
     let scriptModal = false;
 
+    /**
+     * Called when an item should be added.
+     * This does not actually add the item to the song if it requires extra info from the user, such as scripts
+     * @param e item add event
+     */
     function onItemAdded(e: { detail: { type: any; data: any; }; }) {
         switch (e.detail.type) {
             case "AUDIO": {
@@ -45,8 +50,12 @@
         }
     }
 
+    /**
+     * Actually plays the song. 
+     * This is recursively called for each sound.
+     */
     function play() {
-        if (currentItemIdx >= song.length) {
+        if (currentItemIdx >= song.length) { // Song has ended.
             currentItemIdx = 0;
             return;
         }
@@ -54,6 +63,7 @@
         let item = song[currentItemIdx];
         currentItemIdx++;
 
+        // Execute the action of the item, e.g play the sound or run a script etc
         switch (item.type) {
             case "AUDIO":{
                 let data = item.data as AudioData;
@@ -78,20 +88,32 @@
         setTimeout(play, 1500 - bpm);
     }
 
+    /**
+     * Called when the playback rate is changed by the user
+     * @param speed new playback rate
+     */
     function onSpeedChange(speed) {
         if (speed == null || currentPlayingAudio == null) return;
 
         currentPlayingAudio.playbackRate = speed;
     }
 
-    async function onBoardSelect(e) {
+    /**
+     * Called when a board is selected
+     * @param e board select event
+     */
+    async function onBoardSelect(e: { detail: string; }) {
         let data = await fetch(e.detail);
         let json = await data.json();
 
         sounds = loadSoundsJSON(json);
     }
 
-    function onSoundAdded(e) {
+    /**
+     * Called when the user creates a new sound
+     * @param e sound create event
+     */
+    function onSoundCreated(e: { detail: { sound: string; image: string; }; }) {
         const id = uuidv4();
         loadedSounds.sounds[id] = {
             id,
@@ -110,11 +132,19 @@
         ];
     }
 
-    function removeSound(e) {
+    /**
+     * Called when a sound should be removed.
+     * @param e remove sound file event
+     */
+    function removeSound(e: { detail: { id: number; }; }) {
         song = song.filter((i) => i.id != e.detail.id);
     }
 
-    function onScriptAdded(e) {
+    /**
+     * Called when a script item is supposed to be added.
+     * @param e script add event.
+     */
+    function onScriptAdd(e: { detail: string; }) {
         song = [
             ...song,
             {
@@ -127,14 +157,25 @@
         ];
     }
 
-    function onSongLoaded(e) {
+    /**
+     * Called when a song file has been loaded.
+     * @param e song load event
+     */
+    function onSongLoaded(e: { detail: SongItem[]; }) {
         song = e.detail;
     }
 
-    function onSoundsLoaded(e) {
+    /**
+     * Called when a sounds file has been loaded.
+     * @param e sounds load event
+     */
+    function onSoundsLoaded(e: { detail: Sound[]; }) {
         sounds = e.detail;
     }
 
+    /**
+     * Opens the create sound modal.
+     */
     function createSound(){
         createSoundModal = {
             sound: null, 
@@ -152,8 +193,8 @@
 
     <Boards on:select={onBoardSelect} />
 
-    <AddSoundModal bind:soundModal={createSoundModal} on:add={onSoundAdded} />
-    <AddScriptModal bind:scriptModal on:add={onScriptAdded} />
+    <AddSoundModal bind:soundModal={createSoundModal} on:add={onSoundCreated} />
+    <AddScriptModal bind:scriptModal on:add={onScriptAdd} />
 
     <h2>Sounds</h2>
     <div class="sections">
@@ -167,6 +208,7 @@
         </div>
         <Options on:add={onItemAdded} on:play={play} bind:speed={bpm} bind:playbackRate />
     </div>
+    <p>Not affiliated with SVT or Häxan surtant, no copyright infringement intended.</p>
 </main>
 
 <style>
@@ -182,5 +224,10 @@
     .sections {
         display: flex;
         gap: 20px;
+    }
+
+    p {
+        margin-top: 10rem;
+        font-size: 12px;
     }
 </style>

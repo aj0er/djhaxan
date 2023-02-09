@@ -6,10 +6,17 @@
 
     export let sounds: Sound[];
 
+    /**
+     * Called when a sound is supposed to be added to the song
+     * @param e Item add sound event
+     */
     function add(e: { detail: Sound }) {
         dispatch("add", e.detail);
     }
 
+    /**
+     * Called when the create sound button is called.
+     */
     function createSound() {
         dispatch("createSound");
     }

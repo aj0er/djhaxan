@@ -2,9 +2,7 @@ import { loadedSounds } from "./loadedSounds";
 
 export function loadSoundsJSON(data){
     let map = {};
-    data.forEach(s => {
-        map[s.id] = s;
-    });
+    data.forEach(s => map[s.id] = s);
 
     loadedSounds.sounds = map; 
 

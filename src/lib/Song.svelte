@@ -8,6 +8,10 @@
 
     export let song: SongItem[];
 
+    /**
+     * DND handler, updates the song order
+     * @param e DND consider/finalize event
+     */
     function handler(e: { detail: { items: SongItem[]; }; }) {
         song = e.detail.items;
     }

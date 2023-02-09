@@ -15,24 +15,39 @@
     export let sounds: Sound[];
     export let song: SongItem[];
 
-    function getSounds(){
+    /**
+     * Extracts the actual loaded sounds from the sounds array instead of the ID reference.
+     */
+    function getLoadedSounds(){
         return sounds.map((item) => loadedSounds.sounds[(item.data as AudioData).sound]);
     }
 
+    /**
+     * Saves the sounds to the specified sounds file name.
+     */
     function saveSounds() {
         saveJSONFile(
             soundsFileName,
-            getSounds()
+            getLoadedSounds()
         );
     }
 
+    /**
+     * Saves both the song and the necessary sounds to the specified song file name.
+     */
     function saveSong() {
         saveJSONFile(songFileName, {
-            sounds: getSounds(),
+            sounds: getLoadedSounds(),
             song: song
         });
     }
 
+    /**
+     * Initiates a download in the browser for a JSON file with the specified content.
+     * Creates a link which is programatically clicked.
+     * @param fileName name of the file to save
+     * @param data data to transform to JSON
+     */
     function saveJSONFile(fileName: string, data: any) {
         const element = document.createElement("a");
         element.setAttribute(
@@ -49,6 +64,9 @@
         document.body.removeChild(element);
     }
 
+    /**
+     * Called when a sounds file has been uploaded and should be loaded.
+     */
     function onSoundsUpload(){
         let reader = new FileReader();
         reader.readAsText(soundsFile[0]);
@@ -60,6 +78,9 @@
         };
     }
 
+    /**
+     * Called when a song file has been uploaded and should be loaded.
+     */
     function onSongUpload(){
         let reader = new FileReader();
         reader.readAsText(songFile[0]);

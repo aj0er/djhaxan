@@ -2,9 +2,9 @@
     import { createEventDispatcher } from "svelte";
 
     const dispatch = createEventDispatcher();
-    export let scriptModal;
+    export let scriptModal: boolean;
 
-    let script;
+    let script: string;
 
     function save() {
         dispatch("add", script);

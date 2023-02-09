@@ -7,6 +7,11 @@ export interface LoadedSound {
     image: string // Base64-encoded image
 }
 
+export interface SoundBoardPreset {
+    name: string,
+    url: string
+}
+
 export interface SongItem {
     id: number,
     type: ItemType,

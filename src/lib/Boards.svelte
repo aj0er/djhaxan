@@ -1,17 +1,19 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
+    import type { SoundBoardPreset } from "../model";
     const dispatch = createEventDispatcher();
 
-    let boards = [
+    let boards: SoundBoardPreset[] = [
         {
             name: "Häxan surtant",
-            url: "https://te19adjo.kgwebb.se/sb/hax.php",
+            url: "soundboards/haxansurtant.json",
         },
     ];
 </script>
 
 <div class="boards">
     {#each boards as board}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div class="board" on:click={() => dispatch("select", board.url)}>
             {board.name}
         </div>
